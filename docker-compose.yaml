@@ -1,19 +1,25 @@
 version: "3.1"
 services:
  client:
+  context:
+   command: cd client
+  dependencis:
+   command: npm install
   build:
-  command: npm start
+   command: npm start
   ports:
+  -3000:3000
   
- backend:
+ server:
+  context:
+   command: cd backend
+  dependencies:
+   command: npm install
   build:
-  command: npm start
+   command: npm start
   depends_on:
-  - mongod
+  - mongo
   ports:
+  - 5000:5000
  mongo:
   image: mongo
-
-
-
-
