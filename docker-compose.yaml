@@ -1,25 +1,38 @@
 version: "3.1"
 services:
- client:
-  context:
-   command: cd client
-  dependencis:
-   command: npm install
-  build:
-   command: npm start
-  ports:
-  -3000:3000
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/yolomy
+    depends_on:
+      - mongo
+    networks:
+      - mynetwork
+    ports:
+      - "5000:5000"
+
+  mongo:
+    container_name: mongo
+    image: mongo
+    restart: always
+    networks:
+      - mynetwork
+    ports:
+      - "8000:27017"
   
- server:
-  context:
-   command: cd backend
-  dependencies:
-   command: npm install
-  build:
-   command: npm start
-  depends_on:
-  - mongo
-  ports:
-  - 5000:5000
- mongo:
-  image: mongo
+  client:
+    stdin_open: true
+    build:
+      context: ./client
+    networks:
+      - mynetwork
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+networks:
+  mynetwork:
+    driver: bridge
