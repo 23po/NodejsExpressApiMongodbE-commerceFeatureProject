@@ -1,4 +1,4 @@
-FROM node:16.7.0
+FROM node:16.7.0-alpine
 
 LABEL maintainer="Calvin Kodalo <ckodalo@gmail.com>"
 
@@ -9,5 +9,3 @@ COPY . .
 RUN npm install
 
 CMD ["npm", "start"]
-
-EXPOSE 3000

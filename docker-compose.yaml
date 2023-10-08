@@ -1,7 +1,22 @@
 version: "3.1"
 services:
 
+  client:
+    image: ip2_client:1.0.0    
+    stdin_open: true
+    build:
+      context: ./client
+    depends_on:
+      - backend
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/yolomy
+    networks:
+      - mynetwork
+    ports:
+      - "3000:3000"
+
   backend:
+    image: ip2_backend:1.0.0
     build:
       context: ./backend
     environment:
@@ -15,24 +30,21 @@ services:
 
   mongo:
     container_name: mongo
-    image: mongo
+    image: mongo:6.0-jammy
     restart: always
     networks:
       - mynetwork
     ports:
       - "8000:27017"
-  
-  client:
-    stdin_open: true
-    build:
-      context: ./client
-    networks:
-      - mynetwork
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
+    volumes:
+      - mongo-persistent-storage:/data/db
 
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  mongo-persistent-storage:
+    # driver: local
+    # driver_opts:
+    #   size: 50m
