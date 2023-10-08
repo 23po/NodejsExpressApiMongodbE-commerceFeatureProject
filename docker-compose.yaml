@@ -45,6 +45,3 @@ networks:
 
 volumes:
   mongo-persistent-storage:
-    # driver: local
-    # driver_opts:
-    #   size: 50m
