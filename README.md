@@ -1,4 +1,5 @@
 # Requirements
+
 Make sure that you have the following installed:
 - [node](https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-18-04) 
 - npm 
@@ -20,4 +21,11 @@ Make sure that you have the following installed:
 
  `npm start`
 
- ### Go ahead a nd add a product (note that the price field only takes a numeric input)
+ ### Go ahead and add a product (note that the price field only takes a numeric input)
+
+# Alternatively: 
+
+You can spin up docker microservices, which includes client, backend, and a mongo database, using: `docker compose up --build`
+
+open the application on localhost:3000
+ 
