@@ -3,142 +3,216 @@
   hosts: all
   become: yes
   become_method: sudo
-  gather_facts: false
+  # connection: local
+  #gather_facts: false
   # roles:
   #   - client
   #   - backend
   #   - mongodb
 
-  tasks:
-    - name: Update apt cache
-      apt: update_cache=yes cache_valid_time=3600
+  tasks: 
+        - name: Install dependencies
+          apt:
+            name: "{{ packages }}"
+            state: present
+            update_cache: yes
+          vars:
+            packages:
+            - apt-transport-https
+            - ca-certificates
+            - curl
+            - software-properties-common
+            - gnupg-agent
 
-    # - name: Upgrade all apt packages
-    #   apt: 
-    #    upgrade: dist
+        - name: Add Docker GPG apt Key
+          apt_key:
+            url: https://download.docker.com/linux/ubuntu/gpg
+            state: present
 
-    - name: Ensure Python 3 and pip3 are installed
-      apt:
-       name: python3-pip
-       state: present
-    
-    # - name: Install docker packages
+        - name: Add apt repository for stable version
+          apt_repository:
+            repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+            state: present
+
+        - name: Install Docker
+          apt:
+            name: "{{ packages }}"
+            state: present
+            update_cache: yes
+          vars:
+            packages:
+            - docker-ce
+            - docker-ce-cli 
+            - containerd.io
+
+        - name: add userpermissions
+          shell: "usermod -aG docker vagrant"
+
+        - name: Clone Git repository
+          git:
+            repo: https://github.com/ckodalo/NodejsExpressApiMongodbE-commerceFeatureProject.git
+            dest: /home/NodejsExpressApiMongodbE-commerceFeatureProject
+          become: yes
+        
+        - name: Ensure Client image is build from the Dockerfile
+          docker_image:
+            name: ip2_client
+            source: build
+            build:
+              path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/client
+            state: present
+
+        - name: Ensure Backend image is build from the Dockerfile
+          docker_image:
+            name: ip2_backend
+            source: build
+            build:
+              path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/backend
+            state: present 
+
+        - name: Create a network with custom IPAM config
+          docker_network:
+            name: mynetwork
+            ipam_config:
+              - subnet: 172.3.27.0/24
+                gateway: 172.3.27.2
+                iprange: 172.3.27.0/26
+                aux_addresses:
+                  host1: 172.3.27.3
+                  host2: 172.3.27.4
+
+        - name: Set up MongoDB container
+          docker_container:
+            name: mongo
+            image: mongo:6.0-jammy
+            state: started
+            restart_policy: always
+            networks:
+              - name: mynetwork
+                # aliases: mongo
+            ports:
+              - "8000:27017"
+            volumes:
+              - mongo-persistent-storage:/data/db
+
+        - name: Set up Backend container
+          docker_container:
+            name: backend_container
+            image: ip2_backend:latest
+            state: started
+            networks:
+              - name: mynetwork
+                aliases: backend
+            ports:
+              - "5000:5000"
+            env:
+              MONGODB_URI: mongodb://mongo:27017/yolomy
+            # depends_on:
+            #   - mongo
+
+        - name: Set up Client container
+          docker_container:
+            name: client_container
+            image: ip2_client:latest
+            state: started
+            tty: true
+            networks:
+              - name: mynetwork
+                aliases: client
+            ports:
+              - "3000:3000"
+            env:
+              MONGODB_URI: mongodb://mongo:27017/yolomy
+            # depends_on:
+            #   - backend
+
+# volumes:
+#   mongo-persistent-storage:
+
+            
+
+            
+
+    # - name: Update apt cache
+    #   apt: update_cache=yes cache_valid_time=3600
+
+    # # - name: Upgrade all apt packages
+    # #   apt: 
+    # #    upgrade: dist
+
+    # - name: Ensure Python 3 and pip3 are installed
     #   apt:
-    #    name: ['apt-transport-https','ca-certificates', 'curl', 'software-properties-common']
+    #    name: python3-pip
     #    state: present
+    
+    # # - name: Install docker packages
+    # #   apt:
+    # #    name: ['apt-transport-https','ca-certificates', 'curl', 'software-properties-common']
+    # #    state: present
+    # #    update_cache: yes
+    # #   tags:
+    # #    - docker
+
+    # - name: update apt packages
+    #   apt:
     #    update_cache: yes
     #   tags:
     #    - docker
 
-    - name: Install dependencies
-      apt:
-        name: "{{ packages }}"
-        state: present
-        update_cache: yes
-      vars:
-        packages:
-        - apt-transport-https
-        - ca-certificates
-        - curl
-        - software-properties-common
-        - gnupg-agent
+  
 
-    - name: update apt packages
-      apt:
-       update_cache: yes
-      tags:
-       - docker
-
-    - name: Add Docker GPG apt Key
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
-        state: present
-
-    # - name: Add Docker Repository
-    #   apt_repository:
-    #     repo: deb https://download.docker.com/linux/ubuntu jammy stable
-    #     state: present
-
-    - name: Add apt repository for stable version
-      apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
-        state: present
-
-    # - name: install docker-ce
-    #   apt:
-    #    name: docker-ce
-    #    state: present
-    #    update_cache: yes
-    #   tags:
-    #    - docker 
-
-    - name: Install Docker
-      apt:
-        name: "{{ packages }}"
-        state: present
-        update_cache: yes
-      vars:
-        packages:
-        - docker-ce
-        - docker-ce-cli 
-        - containerd.io
-
-    - name: Install the docker Python package
-      pip:
-       name: docker
-      become: yes
-    
-    - name: install docker-compose from official github repo
-      get_url:
-       url: https://github.com/docker/compose/releases/download/1.28.0/docker-compose-Linux-x86_64
-       dest: /usr/local/bin/docker-compose
-       mode: '0755'
-
-    # - name: Install Docker and Docker Compose
-    #   apt:
-    #     name: docker.io, docker-compose
-    #     state: present
-
-    # - name: Install Docker and Docker Compose
+    # - name: Install the docker Python package
+    #   pip:
+    #    name: docker
     #   become: yes
-    #   command: "apt-get install -y docker.io docker-compose"
-    #   ignore_errors: yes
-    #   changed_when: false
     
-    - name: Clone Git repository
-      git:
-        repo: https://github.com/ckodalo/NodejsExpressApiMongodbE-commerceFeatureProject.git
-        dest: /home/NodejsExpressApiMongodbE-commerceFeatureProject
-      become: yes
+    # - name: install docker-compose from official github repo
+    #   get_url:
+    #    url: https://github.com/docker/compose/releases/download/1.28.0/docker-compose-Linux-x86_64
+    #    dest: /usr/local/bin/docker-compose
+    #    mode: '0755'
 
-    - name: Ensure the Docker Compose file exists
-      stat:
-        path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/docker-compose.yaml
-      register: compose_file
+    # # - name: Install Docker and Docker Compose
+    # #   apt:
+    # #     name: docker.io, docker-compose
+    # #     state: present
 
-    # - name: Run Docker Compose
-    #   docker_compose:
-    #     project_src: /home/NodejsExpressApiMongodbE-commerceFeatureProject
-    #     state: present
-    #     #build: no
-    #   #register: output  
-    #   when: compose_file.stat.exists
+    # # - name: Install Docker and Docker Compose
+    # #   become: yes
+    # #   command: "apt-get install -y docker.io docker-compose"
+    # #   ignore_errors: yes
+    # #   changed_when: false
+    
+  
 
-    - name: ensure compose module exists
-      pip: 
-       name: docker_compose
-       state: present
+    # - name: Ensure the Docker Compose file exists
+    #   stat:
+    #     path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/docker-compose.yaml
+    #   register: compose_file
 
-    - name: Start the containers using Docker Compose
-      become: yes
-      become_method: sudo
-      community.docker.docker_compose:
-          project_src: /home/NodejsExpressApiMongodbE-commerceFeatureProject
-          #state: present
-      register: output
+    # # - name: Run Docker Compose
+    # #   docker_compose:
+    # #     project_src: /home/NodejsExpressApiMongodbE-commerceFeatureProject
+    # #     state: present
+    # #     #build: no
+    # #   #register: output  
+    # #   when: compose_file.stat.exists
 
-    - name: Show results
-      ansible.builtin.debug: 
-          var: output 
-      # args:
-      #     chdir: /home/NodejsExpressApiMongodbE-commerceFeatureProject
+    # - name: ensure compose module exists
+    #   pip: 
+    #    name: docker_compose
+    #    state: present
+
+    # - name: Start the containers using Docker Compose
+    #   become: yes
+    #   become_method: sudo
+    #   community.docker.docker_compose:
+    #       project_src: /home/NodejsExpressApiMongodbE-commerceFeatureProject
+    #       #state: present
+    #   register: output
+
+    # - name: Show results
+    #   ansible.builtin.debug: 
+    #       var: output 
+    #   # args:
+    #   #     chdir: /home/NodejsExpressApiMongodbE-commerceFeatureProject
