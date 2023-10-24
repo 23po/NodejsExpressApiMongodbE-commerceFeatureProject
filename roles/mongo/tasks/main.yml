@@ -1,0 +1,15 @@
+---
+# tasks file for mongo
+        - name: Set up MongoDB container
+          docker_container:
+            name: mongo
+            image: mongo:6.0-jammy
+            state: started
+            restart_policy: always
+            networks:
+              - name: mynetwork
+                # aliases: mongo
+            ports:
+              - "8000:27017"
+            volumes:
+              - mongo-persistent-storage:/data/db

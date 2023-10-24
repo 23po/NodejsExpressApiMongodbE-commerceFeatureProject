@@ -1,0 +1,25 @@
+---
+# tasks file for backend
+
+   - name: Ensure Backend image is build from the Dockerfile
+     docker_image:
+        name: ip2_backend
+        source: build
+        build:
+          path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/backend
+        state: present 
+
+
+
+   - name: Set up Backend container
+     docker_container:
+        name: backend_container
+        image: ip2_backend:latest
+        state: started
+        networks:
+        - name: mynetwork
+          aliases: backend
+        ports:
+        - "5000:5000"
+        env:
+          MONGODB_URI: mongodb://mongo:27017/yolomy

@@ -3,14 +3,7 @@
   hosts: all
   become: yes
   become_method: sudo
-  # connection: local
-  #gather_facts: false
-  # roles:
-  #   - client
-  #   - backend
-  #   - mongodb
-
-  tasks: 
+  pre_tasks:
         - name: Install dependencies
           apt:
             name: "{{ packages }}"
@@ -53,22 +46,6 @@
             repo: https://github.com/ckodalo/NodejsExpressApiMongodbE-commerceFeatureProject.git
             dest: /home/NodejsExpressApiMongodbE-commerceFeatureProject
           become: yes
-        
-        - name: Ensure Client image is build from the Dockerfile
-          docker_image:
-            name: ip2_client
-            source: build
-            build:
-              path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/client
-            state: present
-
-        - name: Ensure Backend image is build from the Dockerfile
-          docker_image:
-            name: ip2_backend
-            source: build
-            build:
-              path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/backend
-            state: present 
 
         - name: Create a network with custom IPAM config
           docker_network:
@@ -80,49 +57,73 @@
                 aux_addresses:
                   host1: 172.3.27.3
                   host2: 172.3.27.4
+  roles:
+    - mongo
+    - backend
+    - client
 
-        - name: Set up MongoDB container
-          docker_container:
-            name: mongo
-            image: mongo:6.0-jammy
-            state: started
-            restart_policy: always
-            networks:
-              - name: mynetwork
-                # aliases: mongo
-            ports:
-              - "8000:27017"
-            volumes:
-              - mongo-persistent-storage:/data/db
+  tasks: 
+        
+        # - name: Ensure Client image is build from the Dockerfile
+        #   docker_image:
+        #     name: ip2_client
+        #     source: build
+        #     build:
+        #       path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/client
+        #     state: present
 
-        - name: Set up Backend container
-          docker_container:
-            name: backend_container
-            image: ip2_backend:latest
-            state: started
-            networks:
-              - name: mynetwork
-                aliases: backend
-            ports:
-              - "5000:5000"
-            env:
-              MONGODB_URI: mongodb://mongo:27017/yolomy
-            # depends_on:
-            #   - mongo
+        # - name: Ensure Backend image is build from the Dockerfile
+        #   docker_image:
+        #     name: ip2_backend
+        #     source: build
+        #     build:
+        #       path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/backend
+        #     state: present 
 
-        - name: Set up Client container
-          docker_container:
-            name: client_container
-            image: ip2_client:latest
-            state: started
-            tty: true
-            networks:
-              - name: mynetwork
-                aliases: client
-            ports:
-              - "3000:3000"
-            env:
-              MONGODB_URI: mongodb://mongo:27017/yolomy
+    
+
+        # - name: Set up MongoDB container
+        #   docker_container:
+        #     name: mongo
+        #     image: mongo:6.0-jammy
+        #     state: started
+        #     restart_policy: always
+        #     networks:
+        #       - name: mynetwork
+        #         aliases: mongo
+        #     ports:
+        #       - "8000:27017"
+        #     volumes:
+        #       - mongo-persistent-storage:/data/db
+
+        # - name: Set up Backend container
+        #   docker_container:
+        #     name: backend_container
+        #     image: ip2_backend:latest
+        #     state: started
+        #     networks:
+        #       - name: mynetwork
+        #         aliases: backend
+        #     ports:
+        #       - "5000:5000"
+        #     env:
+        #       MONGODB_URI: mongodb://mongo:27017/yolomy
+        #     depends_on:
+        #       - mongo
+
+        # - name: Set up Client container
+        #   docker_container:
+        #     name: client_container
+        #     image: ip2_client:latest
+        #     state: started
+        #     tty: true
+        #     networks:
+        #       - name: mynetwork
+        #         aliases: client
+        #     ports:
+        #       - "3000:3000"
+        #     env:
+        #       MONGODB_URI: mongodb://mongo:27017/yolomy
             # depends_on:
             #   - backend
 

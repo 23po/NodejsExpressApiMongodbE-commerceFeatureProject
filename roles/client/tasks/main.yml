@@ -1,0 +1,25 @@
+    
+        - name: Ensure Client image is build from the Dockerfile
+          docker_image:
+            name: ip2_client
+            source: build
+            build:
+              path: /home/NodejsExpressApiMongodbE-commerceFeatureProject/client
+            state: present
+
+         
+        - name: Set up Client container
+          docker_container:
+            name: client_container
+            image: ip2_client:latest
+            state: started
+            tty: true
+            networks:
+              - name: mynetwork
+                aliases: client
+            ports:
+              - "3000:3000"
+            env:
+              MONGODB_URI: mongodb://mongo:27017/yolomy
+            # depends_on:
+            #   - backend
