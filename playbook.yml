@@ -16,16 +16,22 @@
             - curl
             - software-properties-common
             - gnupg-agent
+          tags:
+           - pre-installs
 
         - name: Add Docker GPG apt Key
           apt_key:
             url: https://download.docker.com/linux/ubuntu/gpg
             state: present
+          tags:
+           - docker
 
         - name: Add apt repository for stable version
           apt_repository:
             repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
             state: present
+          tags:
+           - docker
 
         - name: Install Docker
           apt:
@@ -37,9 +43,13 @@
             - docker-ce
             - docker-ce-cli 
             - containerd.io
+          tags:
+           - docker
 
         - name: add userpermissions
           shell: "usermod -aG docker vagrant"
+          tags:
+           - docker
 
         - name: Clone Git repository
           git:
