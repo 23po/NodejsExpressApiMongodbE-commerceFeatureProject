@@ -29,15 +29,16 @@ You can spin up docker microservices, which includes client, backend, and a mong
 
 open the application on localhost:3000
 
-## For Managing VM using Ansible:
+## Using Vagrant with Ansible:
 
 Ensure you have Vagrant and a VM provider (Virtualbox) installed, you can use the official website:
- - [install vagrant] (https://developer.hashicorp.com/vagrant/docs/installation)
- - [Install Ansible] (https://medium.com/@kadimasam/install-ansible-on-ubuntu-22-04-f5152edcbdce)
+ - [install vagrant](https://developer.hashicorp.com/vagrant/docs/installation)
+ - [Install Ansible](https://medium.com/@kadimasam/install-ansible-on-ubuntu-22-04-f5152edcbdce)
 
-* Once you are set up, you only need to run `vagrant up` to spin your VM, and `vagrant provision` will execute the playbook on yor vm from your machine
-* Alternatively, you can execute the playbook with something like `ansible-playbook playbook.yaml`
+* Once you are set up, run `vagrant up` to spin your VM, and `vagrant provision` will execute the playbook on your vm from your machine
+* Alternatively, you can execute the playbook with something like `ansible-playbook playbook.yml`
 * Confirm that you can access the application on localhost:3000, and test persistence
+* Check the explanation2.md for reasoning behind the playbook
 
 
  
