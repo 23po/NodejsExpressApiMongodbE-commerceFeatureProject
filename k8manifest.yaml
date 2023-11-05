@@ -4,13 +4,13 @@ metadata:
  name: ecommerce-app
 spec:
  containers:
- - image: ckodalo/ip2_backend
+ - image: ckodalo/ip2_backend:1.0.0
    name: backend
    ports:
    - containerPort: 5000
      protocol: TCP
    imagePullPolicy: IfNotPresent
- - image: ckodalo/ip2_client
+ - image: ckodalo/ip2_client:1.0.0
    name: client
    ports:
    - containerPort: 3000
