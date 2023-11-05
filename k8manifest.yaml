@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+ name: ecommerce-app
+spec:
+ containers:
+ - image: ckodalo/ip2_backend
+   name: backend
+   ports:
+   - containerPort: 5000
+     protocol: TCP
+   imagePullPolicy: IfNotPresent
+ - image: ckodalo/ip2_client
+   name: client
+   ports:
+   - containerPort: 3000
+     protocol: TCP
+   imagePullPolicy: IfNotPresent
