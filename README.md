@@ -40,5 +40,11 @@ Ensure you have Vagrant and a VM provider (Virtualbox) installed, you can use th
 * Confirm that you can access the application on localhost:3000, and test persistence
 * Check the explanation2.md for reasoning behind the playbook
 
+## kubernettes cluster
+
+The application is deployed on Google Kubernettes Engine using a 2 pod strategy. The client and backend are containerized in 1 pod `k8manifest.yaml`. The mongodb is containerized in a second pod `mongodb-statefulset.yaml` with an internal database-service `database-service.yaml` exposing it to the rest of the cluster. 
+
+An external service of type loadbalancer `ecommerce-external-service.yaml` exposes the ecommerce pod for global connections. You can try the app here -> http://104.199.195.41:3000/
+
 
  
