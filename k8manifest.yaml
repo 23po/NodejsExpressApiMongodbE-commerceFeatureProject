@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Pod
 metadata:
  name: ecommerce-app
+ labels:
+   app: ecommerce
 spec:
  containers:
  - image: ckodalo/ip2_backend:1.0.0
@@ -9,10 +11,18 @@ spec:
    ports:
    - containerPort: 5000
      protocol: TCP
+   env: 
+   - name: MONGODB_URI
+     value: "mongodb://database-service.default.svc.cluster.local:80/yolomy"
    imagePullPolicy: IfNotPresent
- - image: ckodalo/ip2_client:1.0.0
+ - image: ckodalo/ip2_client:1.0.2
    name: client
    ports:
    - containerPort: 3000
      protocol: TCP
    imagePullPolicy: IfNotPresent
+   stdin: true
+   env:
+   - name: IP_ADDRESS
+     value: 104.199.195.41
+
